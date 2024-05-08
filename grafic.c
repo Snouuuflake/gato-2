@@ -254,11 +254,11 @@ void loadMainWindow(JUEGO *juego)
 
 
   // sección de jugadores
-  vBox = gtk_vbox_new(FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hBox1), vBox, TRUE, TRUE, 0);
+  vBox1 = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hBox1), vBox1, TRUE, TRUE, 0);
 
   hBox = gtk_hbox_new(TRUE, 10);
-    gtk_box_pack_start(GTK_BOX(vBox), hBox, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vBox1), hBox, TRUE, TRUE, 0);
 
   vBox = gtk_vbox_new(FALSE, 10);
     gtk_box_pack_start(GTK_BOX(hBox), vBox, TRUE, TRUE, 10);
@@ -291,7 +291,7 @@ void loadMainWindow(JUEGO *juego)
 
   juego->graficos.flames[1] = gtk_image_new_from_file("./MEDIA/fire.gif");
     gtk_widget_set_size_request(juego->graficos.flames[1], 10, 200);
-    gtk_box_pack_end(GTK_BOX(vBox), juego->graficos.flames[1], FALSE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(vBox1), juego->graficos.flames[1], FALSE, TRUE, 0);
 
   // muestra los widgets
   gtk_widget_show_all(juego->graficos.window);

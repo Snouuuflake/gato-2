@@ -308,4 +308,6 @@ void coppyBoardState(JUEGO *juego)
  * PAntalla de como jugar
  * 
  * Cargar y guardar archivos
+ * 
+ * Al cerrar, si hay partida, preguntar si quiere guardar
 */

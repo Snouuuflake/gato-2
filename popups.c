@@ -368,6 +368,7 @@ void endPopup(JUEGO *juego, char endState)
   image = NULL;
 
   dialog = gtk_dialog_new_with_buttons("Fin del juego", GTK_WINDOW(juego->graficos.window), GTK_DIALOG_MODAL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+    gtk_window_set_default_size(GTK_WINDOW(dialog), 430, 220);
 
   vBox = gtk_vbox_new(FALSE, 10);
     gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), vBox, TRUE, TRUE, 20);
