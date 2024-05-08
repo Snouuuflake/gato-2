@@ -300,17 +300,12 @@ void coppyBoardState(JUEGO *juego)
 
 
 /**
- * Nueva IA
  * Que la ia tire 2 veces en modo dificil
  * Musica del modo dificil
  * Manejar historial para partidas contra ia
  * 
- * Pantalla de victoria
- * Pantalla de guardado
- * Pantalla al presionar un botón sin partida
  * Pantalla de créditos
  * PAntalla de como jugar
  * 
  * Cargar y guardar archivos
- * 
 */
