@@ -360,8 +360,6 @@ void endPopup(JUEGO *juego, char endState)
 {
   GtkWidget *dialog, *vBox, *label, *image;
 
-  GdkPixbuf *pix;
-
   char end[10000];
 
   end[0] = 0;
@@ -396,8 +394,7 @@ void endPopup(JUEGO *juego, char endState)
     {
       if(juego->jugadores[(juego->actual->turno + 1) % 2].esCPU)
       {
-        pix = gdk_pixbuf_new_from_file_at_scale("./MEDIA/hercules.raw", 200, 200, TRUE, NULL);
-        image = gtk_image_new_from_pixbuf(pix);
+        image = gtk_image_new_from_pixbuf(juego->graficos.hercules);
           gtk_box_pack_start(GTK_BOX(vBox), image, TRUE, TRUE, 10);
 
         if(juego->hardMode)

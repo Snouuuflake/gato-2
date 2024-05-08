@@ -76,7 +76,6 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
       endPopup(buttondata->juego, gameEnded);
 
       buttondata->juego->actual->estadoPartida = -1;
-      g_print("Juego terminó. Estado tablero: %c\n", gameEnded);
     }
 
     // TODO: move the vairables up

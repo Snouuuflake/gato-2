@@ -38,7 +38,8 @@ typedef struct def_gamewidgets // (L)
   GtkWidget *playerName[2];
   GtkWidget *flames[2];
   GdkPixbuf *m20[3];
-  GdkPixbuf *m40[3];  
+  GdkPixbuf *m40[3];
+  GdkPixbuf *hercules;
 } GameWidgets;
 
 typedef struct def_juego {
@@ -46,7 +47,6 @@ typedef struct def_juego {
   void *gstructArr[9];
   ESTADO *actual;
   JUGADOR jugadores[2];
-  int jugadorActual;
 
   gboolean hardMode;
   GameWidgets graficos;

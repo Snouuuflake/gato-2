@@ -32,6 +32,8 @@ void loadMainWindow(JUEGO *juego)
   juego->graficos.m40[1] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/o.png", 40, 40, TRUE, NULL);
   juego->graficos.m40[2] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/blank.png", 40, 40, TRUE, NULL);
 
+  juego->graficos.hercules = gdk_pixbuf_new_from_file_at_scale("./MEDIA/hercules.raw", 200, 200, TRUE, NULL);
+
   // crea una ventana con el titulo y le asocia la función destruir
   gdk_color_parse("#DCDAD5", &color);
 
