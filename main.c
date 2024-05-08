@@ -37,7 +37,7 @@ void aiTurn(JUEGO *juego, int playerIndex) {
 
   g_print("1\n");
   for (i = 0; i < 9; i++) {
-    *getBoardItem(&board, i) = juego->actual->tablero[i];
+    *getBoardItem(&board, i) = juego->actual->valor.tablero[i];
   }
 
   g_print("2\n");
@@ -79,9 +79,9 @@ void initJuego(JUEGO *juego)
 {
   int i = 0;
 
-  juego->actual = (ESTADO *) malloc(sizeof(ESTADO));
-  juego->actual->estadoPartida = 0;
-  juego->actual->turno = 0;
+  juego->actual = (LISTA *) malloc(sizeof(LISTA));
+  juego->actual->valor.estadoPartida = 0;
+  juego->actual->valor.turno = 0;
   juego->actual->sig = NULL;
   juego->actual->ant = NULL;
 
@@ -89,7 +89,7 @@ void initJuego(JUEGO *juego)
   {
     juego->gstructArr[i] = (void *) malloc(sizeof(GSTRUCT));
 
-    juego->actual->tablero[i] = ' ';
+    juego->actual->valor.tablero[i] = ' ';
   }
 
   for(i = 0; i < 2; i++) 
@@ -109,7 +109,7 @@ void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], cha
 
   resetGame(juego);
 
-  juego->actual->estadoPartida = 1;
+  juego->actual->valor.estadoPartida = 1;
 
 
   jugadores[0] = jug1;
@@ -148,7 +148,7 @@ void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], cha
 
   if(juego->jugadores[0].esCPU)
   {
-    aiTurn(juego, juego->actual->turno);
+    aiTurn(juego, juego->actual->valor.turno);
     gtk_widget_set_sensitive(juego->graficos.moveButtons[0], FALSE);
   }
 
@@ -157,7 +157,7 @@ void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], cha
 
 void resetGame(JUEGO *juego)
 {
-  ESTADO *temp, *temp2;
+  LISTA *temp, *temp2;
   GSTRUCT *button;
   
   GdkColor color;
@@ -210,7 +210,7 @@ void resetGame(JUEGO *juego)
       juego->actual = juego->actual->ant;
     }
 
-    juego->actual->estadoPartida = 0;
+    juego->actual->valor.estadoPartida = 0;
     temp = juego->actual->sig;
 
     while(temp != NULL)
@@ -263,7 +263,7 @@ void coppyBoardState(JUEGO *juego)
 
     gtk_widget_destroy(button->image);
 
-    switch(juego->actual->tablero[i])
+    switch(juego->actual->valor.tablero[i])
     {
       case 'X':
       {
@@ -296,6 +296,176 @@ void coppyBoardState(JUEGO *juego)
   }
 
   return;
+}
+
+void coppyPlayersState(JUEGO *juego)
+{
+  int i = 0;
+
+  for(i = 0; i < 2; i++)
+  {
+    gtk_widget_show(juego->graficos.playerImg[i]);
+    gtk_label_set_text(GTK_LABEL(juego->graficos.playerName[i]), juego->jugadores[i].nombre);
+  }
+
+  gtk_widget_destroy(juego->graficos.playingImg);
+
+  if(juego->actual->valor.estadoPartida > 0)
+  {
+    juego->graficos.playingImg = gtk_image_new_from_pixbuf(juego->graficos.m40[juego->actual->valor.turno]);
+  }
+  else
+  {
+    juego->graficos.playingImg = gtk_image_new_from_pixbuf(juego->graficos.m40[2]);
+  }
+
+  gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), juego->graficos.playingImg, FALSE, TRUE, 0);
+  gtk_widget_show(juego->graficos.playingImg);
+
+  if(juego->actual->ant != NULL)
+  {
+    gtk_widget_set_sensitive(juego->graficos.moveButtons[0], TRUE);
+  }
+
+  return;
+}
+
+void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent)
+{
+  GtkWidget *dialog, *label, *box;
+  
+  LISTA *temp;
+
+  FILE *fp;
+  
+  int i = 0;
+
+  fp = fopen(fileName, "wb");
+
+  fwrite(&datos->hardMode, sizeof(gboolean), 1, fp);
+
+  for(i = 0; i < 2; i++)
+  {
+    fwrite(&datos->jugadores[i], sizeof(JUGADOR), 1, fp);
+  }
+
+  temp = datos->actual;
+
+  while(temp->ant != NULL)
+  {
+    temp = temp->ant;
+  }
+
+  while(temp != NULL)
+  {
+    fwrite(&temp->valor, sizeof(ESTADO), 1, fp);
+    temp = temp->sig;
+  }
+
+  fclose(fp);
+
+  dialog = gtk_dialog_new_with_buttons("Archivo guardado", GTK_WINDOW(parent), GTK_DIALOG_MODAL, "Cerrar", GTK_RESPONSE_CLOSE, NULL);
+  
+  box = gtk_vbox_new(TRUE, 10);
+    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), box, TRUE, TRUE, 20);
+    gtk_container_set_border_width(GTK_CONTAINER(box), 10);
+
+  label = gtk_label_new("Archivo guardado con exito!");
+    gtk_box_pack_start(GTK_BOX(box), label, TRUE, TRUE, 20);
+
+  gtk_widget_show_all(dialog);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+
+  return;
+}
+
+int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
+{
+  GtkWidget *dialog, *label, *box;
+
+  LISTA *temp;
+  ESTADO turno;
+
+  FILE *fp;
+
+  int rv = 0;
+  int i = 0;
+
+  temp = NULL;
+  datos->actual = NULL;
+
+  dialog = gtk_dialog_new_with_buttons("Cargar partida", GTK_WINDOW(parent), GTK_DIALOG_MODAL, "Cerrar", GTK_RESPONSE_CLOSE, NULL);
+  
+  box = gtk_vbox_new(TRUE, 10);
+    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), box, TRUE, TRUE, 20);
+    gtk_container_set_border_width(GTK_CONTAINER(box), 10);
+
+  fp = fopen(fileName, "rb");
+
+
+  if(fp != NULL)
+  {
+    if(!fread(&datos->hardMode, sizeof(gboolean), 1, fp))
+    {
+      label = gtk_label_new("Partida corrupta.");
+      rv = -1;
+    }
+
+    for(i = 0; i < 2 && !rv; i++)
+    {
+      if(!fread(&datos->jugadores[i], sizeof(JUGADOR), 1, fp))
+      {
+        label = gtk_label_new("Partida corrupta.");
+        rv = -1;
+      }
+    }
+
+    while(fread(&turno, sizeof(ESTADO), 1, fp) && !rv)
+    {
+      temp = (LISTA *) malloc(sizeof(LISTA));
+      temp->valor = turno;
+      temp->ant = NULL;
+      temp->sig = NULL;
+
+      if(datos->actual != NULL)
+      {
+        datos->actual->sig = temp;
+        temp->ant = datos->actual;
+
+        datos->actual = temp;
+      }
+      else
+      {
+        datos->actual = temp;
+      }
+    }
+
+    if(datos->actual == NULL && !rv)
+    {
+      label = gtk_label_new("Partida corrupta.");
+      rv = -1;
+    }
+    
+    fclose(fp);
+
+    if(!rv)
+    {
+      label = gtk_label_new("Partida cargada.");
+    }
+  }
+  else
+  {
+    label = gtk_label_new("No se puede acceder al archivo.");
+    rv = -2;
+  }
+
+  gtk_box_pack_start(GTK_BOX(box), label, TRUE, TRUE, 20);
+  gtk_widget_show_all(dialog);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+
+  return rv;
 }
 
 

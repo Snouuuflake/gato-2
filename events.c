@@ -3,17 +3,15 @@
 void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
 {
   GSTRUCT *buttondata = (GSTRUCT *) data;
-  ESTADO *nuevo, *temp, *temp2;
+  LISTA *nuevo, *temp, *temp2;
   GdkColor color;
-
-  int i = 0;
 
   char players[] = "XO";
 
   char gameEnded = 0;
 
   // solo actua si está vacío el espacio
-  if(buttondata->juego->actual->tablero[buttondata->id] == ' ' && buttondata->juego->actual->estadoPartida > 0)
+  if(buttondata->juego->actual->valor.tablero[buttondata->id] == ' ' && buttondata->juego->actual->valor.estadoPartida > 0)
   {
     // siempre borra los turnos siguientes
     temp = buttondata->juego->actual->sig;
@@ -30,41 +28,36 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
     gtk_widget_set_sensitive(buttondata->juego->graficos.moveButtons[1], FALSE);
     gtk_widget_set_sensitive(buttondata->juego->graficos.moveButtons[0], TRUE);
 
-    nuevo = (ESTADO*) malloc(sizeof(ESTADO)); // <-- crea un nueva instancia de historial
+    nuevo = (LISTA*) malloc(sizeof(LISTA)); // <-- crea un nueva instancia de historial
     nuevo->ant = buttondata->juego->actual; // <-- logicamente su anterior era el turno actual
-    buttondata->juego->actual->sig = nuevo; // <-- el siguiente del actual es el nuevo elemento
-    nuevo->turno = (buttondata->juego->actual->turno + 1) % 2;
-    nuevo->estadoPartida = buttondata->juego->actual->estadoPartida;
     nuevo->sig = NULL; // <-- no tiene siguiente
-
-    // copia el tablero
-    for(i = 0; i < 9; i++)
-    {
-      nuevo->tablero[i] = buttondata->juego->actual->tablero[i];
-    }
+    buttondata->juego->actual->sig = nuevo; // <-- el siguiente del actual es el nuevo elemento
+    
+    nuevo->valor = buttondata->juego->actual->valor;
+    nuevo->valor.turno = (buttondata->juego->actual->valor.turno + 1) % 2;
 
     // cambia el color (en caso de tiro de ia)
     gdk_color_parse("#A3A3A3", &color);
     gtk_widget_modify_bg(eventbox, GTK_STATE_NORMAL, &color);
 
     // cambia el valor en el arreglo
-    nuevo->tablero[buttondata->id] = players[buttondata->juego->actual->turno];
+    nuevo->valor.tablero[buttondata->id] = players[buttondata->juego->actual->valor.turno];
 
     gtk_widget_destroy(buttondata->image);
 
-    buttondata->image = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[buttondata->juego->actual->turno]);
+    buttondata->image = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[buttondata->juego->actual->valor.turno]);
       gtk_container_add(GTK_CONTAINER(eventbox), buttondata->image);
       gtk_widget_show(buttondata->image);
 
     gtk_widget_destroy(buttondata->juego->graficos.playingImg);
 
-    buttondata->juego->graficos.playingImg = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[nuevo->turno]);
+    buttondata->juego->graficos.playingImg = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[nuevo->valor.turno]);
       gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
       gtk_widget_show(buttondata->juego->graficos.playingImg);
     
     buttondata->juego->actual = nuevo;
 
-    gameEnded = estadoTablero(nuevo->tablero);
+    gameEnded = estadoTablero(nuevo->valor.tablero);
 
     if (gameEnded) {
       gtk_widget_destroy(buttondata->juego->graficos.playingImg);
@@ -75,15 +68,15 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
 
       endPopup(buttondata->juego, gameEnded);
 
-      buttondata->juego->actual->estadoPartida = -1;
+      buttondata->juego->actual->valor.estadoPartida = -1;
     }
 
     // TODO: move the vairables up
-    if (buttondata->juego->jugadores[nuevo->turno].esCPU && !gameEnded) {
-      aiTurn(buttondata->juego, buttondata->juego->actual->turno);
+    if (buttondata->juego->jugadores[nuevo->valor.turno].esCPU && !gameEnded) {
+      aiTurn(buttondata->juego, buttondata->juego->actual->valor.turno);
     }
   }
-  else if(!buttondata->juego->actual->estadoPartida)
+  else if(!buttondata->juego->actual->valor.estadoPartida)
   {
     nuevaPartida(NULL, buttondata->juego);
   }
@@ -96,7 +89,7 @@ void button_hover(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
   GSTRUCT *buttondata = (GSTRUCT *) data;
   GdkColor color;
 
-  if(buttondata->juego->actual->tablero[buttondata->id] == ' ' && buttondata->juego->actual->estadoPartida >= 0)
+  if(buttondata->juego->actual->valor.tablero[buttondata->id] == ' ' && buttondata->juego->actual->valor.estadoPartida >= 0)
   {
     gdk_color_parse("#A3A3A3", &color);
     gtk_widget_modify_bg(eventbox, GTK_STATE_NORMAL, &color);
@@ -110,7 +103,7 @@ void button_leave(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
   GSTRUCT *buttondata = (GSTRUCT *) data;
   GdkColor color;
 
-  if(buttondata->juego->actual->tablero[buttondata->id] == ' ')
+  if(buttondata->juego->actual->valor.tablero[buttondata->id] == ' ')
   {
     gdk_color_parse("#DCDAD5", &color);
     gtk_widget_modify_bg(eventbox, GTK_STATE_NORMAL, &color);
@@ -143,7 +136,7 @@ void StopTheApp(GtkWidget *window, gpointer data)
 {
   JUEGO *juego = (JUEGO *) data;
 
-  ESTADO *temp;
+  LISTA *temp;
 
   int i = 0;
 
@@ -192,9 +185,9 @@ void lastTurn(GtkWidget *widget, gpointer data)
 
     gtk_widget_destroy(datos->graficos.playingImg);
 
-    if(datos->actual->estadoPartida > 0)
+    if(datos->actual->valor.estadoPartida > 0)
     {
-      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->turno]);
+      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->valor.turno]);
     }
     else
     {
@@ -227,9 +220,9 @@ void nextTurn(GtkWidget *widget, gpointer data)
 
     gtk_widget_destroy(datos->graficos.playingImg);
 
-    if(datos->actual->estadoPartida > 0)
+    if(datos->actual->valor.estadoPartida > 0)
     {
-      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->turno]);
+      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->valor.turno]);
     }
     else
     {

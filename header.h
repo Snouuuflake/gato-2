@@ -20,13 +20,18 @@ typedef struct def_jugador {
  * Estado o "judada"
  * Formato: "XXOXXOXOO"
  */
-typedef struct def_estado {
+typedef struct def_estado 
+{
   char tablero[9];
   int turno;
   int estadoPartida;
-  struct def_estado *sig;
-  struct def_estado *ant;
 } ESTADO;
+
+typedef struct def_lista {
+  ESTADO valor;
+  struct def_lista *sig;
+  struct def_lista *ant;
+} LISTA;
 
 typedef struct def_gamewidgets // (L)
 {
@@ -43,12 +48,13 @@ typedef struct def_gamewidgets // (L)
 } GameWidgets;
 
 typedef struct def_juego {
+  JUGADOR jugadores[2];
+  gboolean hardMode;
+  LISTA *actual;
+
   GtkWidget *botones[9];
   void *gstructArr[9];
-  ESTADO *actual;
-  JUGADOR jugadores[2];
 
-  gboolean hardMode;
   GameWidgets graficos;
 } JUEGO;
 
@@ -155,3 +161,7 @@ void lastTurn(GtkWidget *widget, gpointer data);
 void nextTurn(GtkWidget *widget, gpointer data);
 
 void coppyBoardState(JUEGO *juego);
+void coppyPlayersState(JUEGO *juego);
+
+void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent);
+int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent);

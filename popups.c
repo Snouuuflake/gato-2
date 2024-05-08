@@ -16,7 +16,7 @@ void nuevaPartida(GtkWidget *widget, gpointer data)
 
   int s = 0;
 
-  if(datos->actual->estadoPartida)
+  if(datos->actual->valor.estadoPartida)
   {
     dialog = gtk_dialog_new_with_buttons("Guardar partida?", GTK_WINDOW(datos->graficos.window), GTK_DIALOG_MODAL, "Cancelar", GTK_RESPONSE_CANCEL, "Si", GTK_RESPONSE_YES, "No", GTK_RESPONSE_NO, NULL);
     
@@ -44,7 +44,7 @@ void nuevaPartida(GtkWidget *widget, gpointer data)
     gtk_widget_destroy(dialog);
   }
 
-  if(res != GTK_RESPONSE_CANCEL || !datos->actual->estadoPartida)
+  if(res != GTK_RESPONSE_CANCEL || !datos->actual->valor.estadoPartida)
   {
     dialog = gtk_dialog_new_with_buttons("Nueva partida", GTK_WINDOW(datos->graficos.window), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
       gtk_window_set_default_size(GTK_WINDOW(dialog), 453, 316);
@@ -167,7 +167,7 @@ void terminarPartida(GtkWidget *widget, gpointer data)
   gint res = 0;
   gint sRes = 0;
 
-  if(datos->actual->estadoPartida)
+  if(datos->actual->valor.estadoPartida)
   {
     dialog = gtk_dialog_new_with_buttons("Guardar partida?", GTK_WINDOW(datos->graficos.window), GTK_DIALOG_MODAL, "Cancelar", GTK_RESPONSE_CANCEL, "Si", GTK_RESPONSE_YES, "No", GTK_RESPONSE_NO, NULL);
     
@@ -235,7 +235,7 @@ gint saveGame(JUEGO *datos, GtkWidget *parent)
   gint result = 0;
   gchar *file;
 
-  if(datos->actual->estadoPartida)
+  if(datos->actual->valor.estadoPartida)
   {
     dialog = gtk_file_chooser_dialog_new("Guardar Partida", GTK_WINDOW(parent), GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
 
@@ -245,8 +245,7 @@ gint saveGame(JUEGO *datos, GtkWidget *parent)
     {
       file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
       
-      // random save function goes here
-      g_print("%s\n", file);
+      saveFile(file, datos, dialog);
 
       g_free(file);
     }
@@ -286,12 +285,16 @@ gint loadGame(JUEGO *datos, GtkWidget *parent)
 {
   GtkWidget *dialog, *label, *vBox;
 
+  JUEGO nuevo;
+
   gint result = 0;
   gint res = 0;
   gint sRes = 0;
+  gint s = 0;
+
   gchar *file;
 
-  if(datos->actual->estadoPartida)
+  if(datos->actual->valor.estadoPartida)
   {
     dialog = gtk_dialog_new_with_buttons("Guardar partida?", GTK_WINDOW(datos->graficos.window), GTK_DIALOG_MODAL, "Cancelar", GTK_RESPONSE_CANCEL, "Si", GTK_RESPONSE_YES, "No", GTK_RESPONSE_NO, NULL);
     
@@ -321,17 +324,39 @@ gint loadGame(JUEGO *datos, GtkWidget *parent)
   
   dialog = gtk_file_chooser_dialog_new("Cargar Partida", GTK_WINDOW(parent), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
 
-  result = gtk_dialog_run(GTK_DIALOG(dialog));
-
-  if(result == GTK_RESPONSE_ACCEPT)
+  do
   {
-    file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-    
-    // random load function goes here
-    g_print("Remember to load the file from here:\n%s\n", file);
+    result = gtk_dialog_run(GTK_DIALOG(dialog));
 
-    g_free(file);
-  }
+    if(result == GTK_RESPONSE_ACCEPT)
+    {
+      file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+      
+      s = loadFile(file, &nuevo, dialog);
+
+      g_free(file);
+
+      if(!s)
+      {
+        resetGame(datos);
+
+        datos->actual = nuevo.actual;
+        datos->jugadores[0] = nuevo.jugadores[0];
+        datos->jugadores[1] = nuevo.jugadores[1];
+        datos->hardMode = nuevo.hardMode;
+
+        coppyBoardState(datos);
+        coppyPlayersState(datos);
+
+        // nombres y jugador actual
+        g_print("Se carga en el tablero");
+      }
+    }
+    else
+    {
+      s = 0;
+    }
+  } while(s);
 
   gtk_widget_destroy(dialog);
 
@@ -374,7 +399,7 @@ void endPopup(JUEGO *juego, char endState)
 
     if(endState == 'g')
     {
-      if(juego->jugadores[juego->actual->turno].esCPU || juego->jugadores[(juego->actual->turno + 1) % 2].esCPU)
+      if(juego->jugadores[juego->actual->valor.turno].esCPU || juego->jugadores[(juego->actual->valor.turno + 1) % 2].esCPU)
       {
         if(juego->hardMode)
         {
@@ -392,7 +417,7 @@ void endPopup(JUEGO *juego, char endState)
     }
     else
     {
-      if(juego->jugadores[(juego->actual->turno + 1) % 2].esCPU)
+      if(juego->jugadores[(juego->actual->valor.turno + 1) % 2].esCPU)
       {
         image = gtk_image_new_from_pixbuf(juego->graficos.hercules);
           gtk_box_pack_start(GTK_BOX(vBox), image, TRUE, TRUE, 10);
@@ -406,7 +431,7 @@ void endPopup(JUEGO *juego, char endState)
           sprintf(end, "Derrota, hercules.raw te mira con desprecio.");
         }
       }
-      else if(juego->jugadores[juego->actual->turno].esCPU)
+      else if(juego->jugadores[juego->actual->valor.turno].esCPU)
       {
         if(juego->hardMode)
         {
