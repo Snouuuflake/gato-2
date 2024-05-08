@@ -475,7 +475,5 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
  * Manejar historial para partidas contra ia
  * 
  * Pantalla de créditos
- * PAntalla de como jugar
- * 
- * Cargar y guardar archivos
+ * Pantalla de como jugar
 */

@@ -347,9 +347,6 @@ gint loadGame(JUEGO *datos, GtkWidget *parent)
 
         coppyBoardState(datos);
         coppyPlayersState(datos);
-
-        // nombres y jugador actual
-        g_print("Se carga en el tablero");
       }
     }
     else
