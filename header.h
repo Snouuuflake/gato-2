@@ -81,10 +81,11 @@ char estadoTablero(char tab[9]);
 /**
  * ai.c (R)
  */
+
 /**
- * Esencialmente una forma de mandar un
- * arreglo como variable y no apuntador
- * if that makes sense
+ * Esencialmente una forma de mandar todos
+ * los datos de un arreglo como parametro
+ * de entrada
  */
 typedef struct def_boardstruct {
   char a;
@@ -98,10 +99,17 @@ typedef struct def_boardstruct {
   char i;
 } BOARDSTRUCT;
 
-typedef struct def_mmscore { //TODO: remove- i dont think this is used
-  int score;
-  char exists;
-} MMSCORE;
+typedef struct def_scorestruct {
+  int score; // win: 1, nothing: 0, tie: -1, loss: -2 (this is all multiplied by a big power of 10)
+  int depth;
+  char exists; // boolean
+} SCORESTRUCT; // minimax score
+
+void printBoard(BOARDSTRUCT board);
+char *getBoardItem(BOARDSTRUCT *board, int index);
+void makeBoardArray(BOARDSTRUCT *board, char array[]);
+char getPiece(int index);
+SCORESTRUCT getMoveScore(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth);
 
 typedef struct def_ngdata
 {
@@ -113,12 +121,6 @@ typedef struct def_ngdata
 } NGDATA;
 
 
-void printBoard(BOARDSTRUCT board);
-char *getBoardItem(BOARDSTRUCT *board, int index);
-void makeBoardArray(BOARDSTRUCT *board, char array[]);
-char getPiece(int index);
-int getScore(BOARDSTRUCT board, int piece, int square);
-int mm2(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth);
 
 void loadMainWindow(JUEGO *juego);
 
