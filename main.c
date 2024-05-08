@@ -34,6 +34,7 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
 
   char gameEnded = 0;
 
+  g_print("5\n");
   // solo actua si está vacío el espacio
   if(buttondata->juego->tablero[buttondata->id] == ' ' && buttondata->juego->estadoPartida > 0)
   {
@@ -50,6 +51,7 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
       gtk_container_add(GTK_CONTAINER(eventbox), buttondata->image);
       gtk_widget_show(buttondata->image);
 
+  g_print("6\n");
     // cambia el jugador
     buttondata->juego->jugadorActual = (buttondata->juego->jugadorActual + 1) % 2;
 
@@ -59,6 +61,7 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
       gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
       gtk_widget_show(buttondata->juego->graficos.playingImg);
 
+  g_print("7\n");
     gameEnded = estadoTablero(buttondata->juego->tablero);
     if (gameEnded) {
       // TODO: hacer algo interesante si alguien ganó
@@ -84,6 +87,7 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
     nuevaPartida(NULL, buttondata->juego);
   }
 
+  g_print("8\n");
   return;
 }
 
@@ -157,46 +161,53 @@ void aiTurn(JUEGO *juego, int playerIndex) {
   int i;
   int chosenMove;
   int greatestScore;
-  int tmpScore;
-  char noScore; //boolean
+  char chosenMoveExists; // boolean in spirit
+  SCORESTRUCT tmpScore;
 
   // @richie -> si la ia empieza la partida, te deja tirar por ella xd
+  // comedia
 
-  noScore = 1;
+  chosenMove = 0; // just in case
+  chosenMoveExists = 0;
 
+  g_print("1\n");
   for (i = 0; i < 9; i++) {
     *getBoardItem(&board, i) = juego->tablero[i];
   }
 
+  g_print("2\n");
   for (i = 0; i < 9; i++) {
     if (*getBoardItem(&board, i) == ' ') {
-      tmpScore = mm2(board, i, playerIndex, playerIndex, 0);
+      tmpScore = getMoveScore(board, i, playerIndex, playerIndex, 0);
 
-      if (noScore) {
-        greatestScore = tmpScore;
+      if (!chosenMoveExists) {
+        greatestScore = tmpScore.score;
         chosenMove = i;
-        noScore = 0;
+        chosenMoveExists = 1;
       } else {
-        if (tmpScore > greatestScore) {
-          greatestScore = tmpScore;
+        if (tmpScore.score > greatestScore) {
+          greatestScore = tmpScore.score;
           chosenMove = i;
+        } else if (tmpScore.score == greatestScore) {
+          if (rand() % 2) { 
+            // si hay varios espacios con el valor maximo, aleatoriamente elije uno
+            chosenMove = i;
+          }
         }
       }
     }
   }
 
-  // TODO: remove this i guess
-  if (noScore) {
-    g_print("AI has no available moves. HOW???\n");
-    exit(0);
-  }
+  g_print("3\n");
+
+  (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
+  printBoard(board);
+  g_print("chosenMove: %d\n", chosenMove);
 
   button_pressed(juego->botones[ chosenMove ], NULL, juego->gstructArr[ chosenMove ]);
 
   // this is for debugging and does not affect the real game in any way:
-  (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
-  printBoard(board);
-  g_print("chosenMove: %d\n", chosenMove);
+  g_print("4\n");
 }
 
 void initJuego(JUEGO *juego) 
