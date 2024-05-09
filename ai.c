@@ -193,11 +193,11 @@ void aiTurn(JUEGO *juego, int playerIndex) {
 
 
   // TODO: remove this maybe? its for debugging.
-  // (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
-  // printBoard(board);
-  // g_print("chosenMove: %d\n", chosenMove);
+  (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
+  printBoard(board);
+  g_print("chosenMove: %d\n", chosenMove);
 
-  // button_pressed(juego->botones[ chosenMove ], NULL, juego->gstructArr[ chosenMove ]);
+  button_pressed(juego->botones[ chosenMove ], NULL, juego->gstructArr[ chosenMove ]);
 
   // this is for debugging and does not affect the real game in any way:
 }
