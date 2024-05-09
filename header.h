@@ -54,6 +54,7 @@ typedef struct def_juego {
 
   GtkWidget *botones[9];
   void *gstructArr[9];
+  gboolean doubleTurn;
 
   GameWidgets graficos;
 } JUEGO;
