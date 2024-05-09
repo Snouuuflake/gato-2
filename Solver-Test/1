@@ -16,7 +16,7 @@ typedef struct def_boardstruct {
 } BOARDSTRUCT;
 
 typedef struct def_mmscore {
-  int score; // win: 1, nothing: 0, tie: -1, loss: -2 (this is all multiplied by a big power of 10)
+  int score; // win: 1, nothing: 0, tie: -1, loss: -2
   int depth;
   char exists; // boolean
 } MMSCORE;
@@ -241,7 +241,6 @@ MMSCORE mm3(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth) {
   char c_piece;
   char c_ogpiece;
   MMSCORE scoreArray[9];
-  MMSCORE tmpscore;
   MMSCORE res;
   char local_board[9];
   char estado;
@@ -261,12 +260,12 @@ MMSCORE mm3(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth) {
 
     if (estado == c_piece || estado == c_ogpiece) { // someone won
       if (c_piece == c_ogpiece) { // win
-        res.score = 100000;
+        res.score = 10;
       } else { // loss
-        res.score = -200000;
+        res.score = -20;
       }
     } else { // gato
-      res.score = -100000;
+      res.score = -10;
     } 
   } else {
     res.score = 0;
@@ -281,9 +280,10 @@ MMSCORE mm3(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth) {
       scoreArray[i].exists = 0; //inicaliando arreglo
 
       if ((*getBoardItem(&board, i)) == ' ') {
-        tmpscore = mm3(board, i, (piece + 1) % 2, ogpiece, depth + 1);
-        res.score += tmpscore.score / (tmpscore.depth + 1);
+        res.score += mm3(board, i, (piece + 1) % 2, ogpiece, depth + 1);
       }
+      res.depth = depth;
+      res.score *= (10 - (depth + 1));
     }
   }
 

@@ -1,5 +1,5 @@
-main.out: main.o ai.o estadoTablero.o grafic.o events.o popups.o
-	gcc -g -Wall -o main.out main.o ai.o estadoTablero.o grafic.o events.o popups.o `pkg-config --cflags --libs gtk+-2.0`
+main.out: main.o ai.o estadoTablero.o grafic.o events.o popups.o sound.o
+	gcc -g -Wall -o main.out main.o ai.o estadoTablero.o grafic.o events.o popups.o sound.o `pkg-config --cflags --libs gtk+-2.0`
 
 main.o: main.c
 	gcc -g -Wall -c main.c `pkg-config --cflags --libs gtk+-2.0`
@@ -18,6 +18,9 @@ events.o: events.c
 
 popups.o: popups.c
 	gcc -g -Wall -c popups.c `pkg-config --cflags --libs gtk+-2.0`
+
+sound.o: sound.c
+	gcc -g -Wall -c sound.c `pkg-config --cflags --libs gtk+-2.0`
 
 clean:
 	rm *.o

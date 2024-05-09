@@ -79,6 +79,7 @@ void initJuego(JUEGO *juego)
   juego->actual = (LISTA *) malloc(sizeof(LISTA));
   juego->actual->valor.estadoPartida = 0;
   juego->actual->valor.turno = 0;
+  juego->actual->valor.playable = FALSE;
   juego->actual->sig = NULL;
   juego->actual->ant = NULL;
 
@@ -122,6 +123,8 @@ void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], cha
       juego->hardMode = TRUE;
 
       displayHardMode(juego);
+
+      startMusic();
     }
   }
   else
@@ -165,6 +168,8 @@ void resetGame(JUEGO *juego)
   gdk_color_parse("#DCDAD5", &color);
 
   juego->hardMode = FALSE;
+
+  stopMusic();
 
   gtk_widget_modify_bg(juego->graficos.window, GTK_STATE_NORMAL, &color);
   gtk_widget_modify_bg(juego->graficos.window, GTK_STATE_INSENSITIVE, &color);

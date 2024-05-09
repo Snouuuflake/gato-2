@@ -34,53 +34,55 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
     buttondata->juego->actual->sig = nuevo; // <-- el siguiente del actual es el nuevo elemento
     
     nuevo->valor = buttondata->juego->actual->valor;
-    if (buttondata->juego->doubleTurn == TRUE) {
+
+
+    if (buttondata->juego->doubleTurn == TRUE) { // permite que se repita el jugador para el modo dificil
       nuevo->valor.turno = buttondata->juego->actual->valor.turno;
     } else {
       nuevo->valor.turno = (buttondata->juego->actual->valor.turno + 1) % 2;
     }
 
+    if (buttondata->juego->jugadores[nuevo->valor.turno].esCPU || buttondata->juego->hardMode) { 
+      // stops user from changing the cpu's moves
+      // hercules is a just god and does not allow cheating in a true challenge
+      nuevo->valor.playable = FALSE;
+    } else {
+      nuevo->valor.playable = TRUE;
+    }
 
     // cambia el color (en caso de tiro de ia)
     gdk_color_parse("#A3A3A3", &color);
     gtk_widget_modify_bg(eventbox, GTK_STATE_NORMAL, &color);
 
     // cambia el valor en el arreglo
-    g_print("actual->valor.turno: %d\n", buttondata->juego->actual->valor.turno);
     nuevo->valor.tablero[buttondata->id] = players[buttondata->juego->actual->valor.turno];
 
     gtk_widget_destroy(buttondata->image);
 
-    g_print("     1\n");
     buttondata->image = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[buttondata->juego->actual->valor.turno]);
       gtk_container_add(GTK_CONTAINER(eventbox), buttondata->image);
       gtk_widget_show(buttondata->image);
 
-    g_print("     2\n");
     gtk_widget_destroy(buttondata->juego->graficos.playingImg);
 
     buttondata->juego->graficos.playingImg = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[nuevo->valor.turno]);
     gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
     gtk_widget_show(buttondata->juego->graficos.playingImg);
 
-    g_print("     3\n");
     buttondata->juego->actual = nuevo;
 
     gameEnded = estadoTablero(nuevo->valor.tablero);
 
-    g_print("     4\n");
     if (gameEnded) {
       if (buttondata->juego->doubleTurn == TRUE) {
         buttondata->juego->actual->valor.turno =  (buttondata->juego->actual->valor.turno + 1) % 2;
       }
       gtk_widget_destroy(buttondata->juego->graficos.playingImg);
 
-      g_print("     5\n");
       buttondata->juego->graficos.playingImg = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[2]);
       gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
       gtk_widget_show(buttondata->juego->graficos.playingImg);
 
-      g_print("     6\n");
       endPopup(buttondata->juego, gameEnded);
 
       buttondata->juego->actual->valor.estadoPartida = -1;
@@ -195,33 +197,48 @@ void StopTheApp(GtkWidget *window, gpointer data)
 void lastTurn(GtkWidget *widget, gpointer data)
 {
   JUEGO *datos = (JUEGO *) data;
+  gboolean canSwitch; 
 
   if(datos->actual != NULL && datos->actual->ant != NULL)
   {
-    datos->actual = datos->actual->ant;
 
-    coppyBoardState(datos);
-
-    gtk_widget_set_sensitive(datos->graficos.moveButtons[1], TRUE);
-
-    if(datos->actual->ant == NULL)
-    {
-      gtk_widget_set_sensitive(datos->graficos.moveButtons[0], FALSE);
+    if ( !(datos->actual->ant->valor.playable) ) {
+        if (datos->actual->ant->ant != NULL ) {
+          datos->actual = datos->actual->ant->ant;
+          canSwitch = TRUE;
+        } else {
+          canSwitch = FALSE;
+        }
+    } else {
+      datos->actual = datos->actual->ant;
+      canSwitch = TRUE;
     }
 
-    gtk_widget_destroy(datos->graficos.playingImg);
+        
+    if (canSwitch && !(datos->hardMode)) {
+      coppyBoardState(datos);
 
-    if(datos->actual->valor.estadoPartida > 0)
-    {
-      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->valor.turno]);
-    }
-    else
-    {
-      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[2]);
-    }
+      gtk_widget_set_sensitive(datos->graficos.moveButtons[1], TRUE);
 
-    gtk_box_pack_start(GTK_BOX(datos->graficos.playingBox), datos->graficos.playingImg, FALSE, TRUE, 0);
-    gtk_widget_show(datos->graficos.playingImg);
+      if(datos->actual->ant == NULL)
+      {
+        gtk_widget_set_sensitive(datos->graficos.moveButtons[0], FALSE);
+      }
+
+      gtk_widget_destroy(datos->graficos.playingImg);
+
+      if(datos->actual->valor.estadoPartida > 0)
+      {
+        datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->valor.turno]);
+      }
+      else
+      {
+        datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[2]);
+      }
+
+      gtk_box_pack_start(GTK_BOX(datos->graficos.playingBox), datos->graficos.playingImg, FALSE, TRUE, 0);
+      gtk_widget_show(datos->graficos.playingImg);
+    }
   }
 
   return;
@@ -230,34 +247,59 @@ void lastTurn(GtkWidget *widget, gpointer data)
 void nextTurn(GtkWidget *widget, gpointer data)
 {
   JUEGO *datos = (JUEGO *) data;
+  gboolean canSwitch;
 
   if(datos->actual != NULL && datos->actual->sig != NULL)
   {
-    datos->actual = datos->actual->sig;
-
-    coppyBoardState(datos);
-
-    gtk_widget_set_sensitive(datos->graficos.moveButtons[0], TRUE);
-
-    if(datos->actual->sig == NULL)
-    {
-      gtk_widget_set_sensitive(datos->graficos.moveButtons[1], FALSE);
+    if ( !(datos->actual->sig->valor.playable) ) {
+        if (datos->actual->sig->sig != NULL ) {
+          datos->actual = datos->actual->sig->sig;
+          canSwitch = TRUE;
+        } else {
+          canSwitch = FALSE;
+        }
+    } else {
+      datos->actual = datos->actual->sig;
+      canSwitch = TRUE;
     }
 
-    gtk_widget_destroy(datos->graficos.playingImg);
+    if (canSwitch && !(datos->hardMode)) {
+      coppyBoardState(datos);
 
-    if(datos->actual->valor.estadoPartida > 0)
-    {
-      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->valor.turno]);
+      gtk_widget_set_sensitive(datos->graficos.moveButtons[0], TRUE);
+
+      if(datos->actual->sig == NULL)
+      {
+        gtk_widget_set_sensitive(datos->graficos.moveButtons[1], FALSE);
+      }
+
+      gtk_widget_destroy(datos->graficos.playingImg);
+
+      if(datos->actual->valor.estadoPartida > 0)
+      {
+        datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[datos->actual->valor.turno]);
+      }
+      else
+      {
+        datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[2]);
+      }
+
+      gtk_box_pack_start(GTK_BOX(datos->graficos.playingBox), datos->graficos.playingImg, FALSE, TRUE, 0);
+      gtk_widget_show(datos->graficos.playingImg);
     }
-    else
-    {
-      datos->graficos.playingImg = gtk_image_new_from_pixbuf(datos->graficos.m40[2]);
-    }
-    
-    gtk_box_pack_start(GTK_BOX(datos->graficos.playingBox), datos->graficos.playingImg, FALSE, TRUE, 0);
-    gtk_widget_show(datos->graficos.playingImg);
   }
 
+  return;
+}
+
+void assistant_close(GtkWidget *widget, gpointer data)
+{
+  gtk_widget_destroy(widget);
+  return;
+}
+void assistant_destroy(GtkWidget *widget, gpointer data)
+{
+  JUEGO *datos = (JUEGO *) data;
+  gtk_widget_set_sensitive(datos->graficos.window, TRUE);
   return;
 }

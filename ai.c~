@@ -1,0 +1,218 @@
+#include "header.h"
+
+/**
+ * @fn Para debugear- imprime un BOARDSTRUCT a la terminal
+ * @param board BOARDSTRUCT que se va a imprimir
+ * @return void
+ */
+void printBoard(BOARDSTRUCT board) {
+  int i, j;
+  char boardArr[9];
+  makeBoardArray(&board, boardArr);
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      gprint("%d:%c ",(i*3)+j, boardArr[(i*3)+j]);
+    }
+    printf("\n");
+  }
+}
+
+
+char *getBoardItem(BOARDSTRUCT *board, int index) {
+  switch (index) {
+  case 0:
+    return &(board->a);
+    break;
+  case 1:
+    return &(board->b);
+    break;
+  case 2:
+    return &(board->c);
+    break;
+  case 3:
+    return &(board->d);
+    break;
+  case 4:
+    return &(board->e);
+    break;
+  case 5:
+    return &(board->f);
+    break;
+  case 6:
+    return &(board->g);
+    break;
+  case 7:
+    return &(board->h);
+    break;
+  case 8:
+    return &(board->i);
+    break;
+  default:
+    printf("Error: attempted to access index (%d)\n", index);
+    return NULL; // causes segfault so i know where I messed up. Can also be validted as a boolean
+    break;
+  }
+}
+
+void makeBoardArray(BOARDSTRUCT *board, char array[]) {
+  int i;
+  for (i = 0; i < 9; i++) {
+    array[i] = (*getBoardItem(board, i));
+  }
+}
+
+char getPiece(int index) {
+  char arr[] = {'X','O'};
+  return arr[index];
+}
+
+/**
+ * Returns from {10,0} now
+ */
+int getScore(BOARDSTRUCT board, int piece, int square) {
+  char arr[9];
+  char c;
+  char state;
+
+  c = getPiece(piece);
+  *(getBoardItem(&board,square)) = c;
+
+  makeBoardArray(&board, arr);
+
+  state = estadoTablero(arr);
+
+  if (state) {
+    return 10;
+  } else {
+    return 0;
+  }
+}
+
+
+/**
+ * is mostly not stupid now
+ */
+int mm2(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth) {
+  char c = 0; // paranoia
+  int i = 0;
+  int crit = 0;
+  int chosenMove = -1;
+  int tmpScore = 0;
+  int res = 0;
+  int s = 0;
+  int nextPiece = 0;
+
+  s = getScore(board, piece, square);
+  if (s == ogpiece) {
+    res = (10 - depth);
+  } else if (s) {
+    res = (10 - depth) * (-1);
+  }
+  else {
+    res = 0;
+  }
+
+  *(getBoardItem(&board,square)) = getPiece(piece);
+
+  nextPiece = (piece + 1) % 2;
+
+  for (i = 0; i < 9; i++) {
+    if ((*getBoardItem(&board, i)) == ' ') {
+      if (chosenMove == -1) {
+        chosenMove = i;
+        crit = getScore(board, nextPiece, i);
+      } else {
+        
+        tmpScore = getScore(board, nextPiece, i);
+        if (tmpScore > crit) {
+          crit = tmpScore;
+          chosenMove = i;
+        }
+      }
+    }
+  }
+
+  if (chosenMove == -1 || getScore(board, piece, square)) {
+    return (res);
+  } else {
+    return (res) + mm2(board, chosenMove, (piece+1)%2, ogpiece, (depth+1));
+  }
+  
+}
+
+int main(void) {
+  BOARDSTRUCT realBoard;
+  char boardArr[9];
+  int i;
+  int j;
+  int input;
+  int cpuInput;
+  int tmpScore;
+  int highestScore;
+  char b;
+  
+  srand(time(NULL)); 
+
+  for (i = 0; i < 9; i++) {
+    *(getBoardItem(&realBoard, i)) = ' ';
+  }
+  // 0 1 2
+  // 3 4 5
+  // 6 7 8
+
+  makeBoardArray(&realBoard, boardArr);
+  while (!estadoTablero(boardArr)) {
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+        printf("%d:%c ",(i*3)+j, boardArr[(i*3)+j]);
+      }
+      printf("\n");
+    }
+
+    b = 0;
+    while (!b) {
+      __fpurge(stdin);
+      scanf("%d", &input);
+      if (*getBoardItem(&realBoard, input) == ' ') {
+        b = 1;
+        (*getBoardItem(&realBoard, input)) = getPiece(0);
+      }
+    }
+
+    makeBoardArray(&realBoard, boardArr);
+    b = 0;
+
+    if (!estadoTablero(boardArr)) {
+      for (i = 0; i < 9; i++) {
+        if (*getBoardItem(&realBoard, i) == ' ') {
+          //printf("score of %d:%d\n", i, minimax(realBoard, i, 1, 1, 0));
+          //tmpScore = minimax(realBoard, i, 1, 1, 0);
+          //tmpScore = minimax(realBoard, i, 1, 1, 1);
+          tmpScore = mm2(realBoard, i, 1, 1, 1);
+          //printf("\n");
+          printf("%d: %d\n", i, tmpScore);
+
+
+          if (!b) {
+            b = 1;
+            cpuInput = i;
+            highestScore = tmpScore;
+          } else if (tmpScore > highestScore) {
+            cpuInput = i;
+            highestScore = tmpScore;
+          }
+          // we get the highest score and if theres multiple, we pick a random one
+          // or we just use the last one because im lazy
+        }
+      }
+      (*getBoardItem(&realBoard, cpuInput)) = getPiece(1);
+      makeBoardArray(&realBoard, boardArr);
+    }
+  }
+
+  printf("final gametsate:\n");
+  printBoard(realBoard);
+
+  return 0;
+}
+

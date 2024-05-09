@@ -25,6 +25,7 @@ typedef struct def_estado
   char tablero[9];
   int turno;
   int estadoPartida;
+  gboolean playable;
 } ESTADO;
 
 typedef struct def_lista {
@@ -45,6 +46,7 @@ typedef struct def_gamewidgets // (L)
   GdkPixbuf *m20[3];
   GdkPixbuf *m40[3];
   GdkPixbuf *hercules;
+  GdkPixbuf *logo;
 } GameWidgets;
 
 typedef struct def_juego {
@@ -166,3 +168,9 @@ void coppyPlayersState(JUEGO *juego);
 
 void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent);
 int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent);
+
+void assistant_close(GtkWidget *widget, gpointer data);
+void assistant_destroy(GtkWidget *widget, gpointer data);
+
+void startMusic(); 
+void stopMusic(); 

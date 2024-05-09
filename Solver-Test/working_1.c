@@ -16,7 +16,7 @@ typedef struct def_boardstruct {
 } BOARDSTRUCT;
 
 typedef struct def_mmscore {
-  int score; // win: 1, nothing: 0, tie: -1, loss: -2 (this is all multiplied by a big power of 10)
+  int score; // win: 1, nothing: 0, tie: -1, loss: -2
   int depth;
   char exists; // boolean
 } MMSCORE;
