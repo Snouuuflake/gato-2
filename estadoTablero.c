@@ -1,5 +1,12 @@
-#include "header.h"
+/**
+ * @file estadoTablero.c
+ * 
+ * @brief Conteien la función para detectar si la partida ha teminado y quién ha ganado en caso de haber victoria
+ * 
+ * @author Mariano Malouly Orozco
+*/
 
+#include "header.h"
 
 /**
  *@fn función que revisa en que estado esta el tablero de juego; si contunua, es empate o hay algún ganador
@@ -11,7 +18,6 @@ char estadoTablero(char tab[9])
   int i = 0;
   int cont = 0;
 
-  // cambié el foprmato porque no entendí nada xd
   for(i = 0; i < 9; i += 3)
   {
     if(tab[i] == tab[i + 1] && tab[i] == tab[i + 2])

@@ -1,8 +1,27 @@
+/**
+ * @file grafic.c
+ * 
+ * @brief Contiene la carga de la ventana principal
+ * 
+ * @author Luis Julián Zamora Treviño
+ * @date 08/05/2024
+*/
+
 #include "header.h"
 
+/**
+ * crea la ventana principal con todos los elementos necesarios, 
+ * guardando punteros a widgets que serán usados en diversos momentos durante la ejecución
+ * 
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego estructura principal del juego
+ * 
+ * @return void
+*/
 void loadMainWindow(JUEGO *juego)
 {
-  // ventana principal
+  // caja principal
   GtkWidget *mainBox;
 
   // contenedores genericos
@@ -16,14 +35,16 @@ void loadMainWindow(JUEGO *juego)
   // elemento de color
   GdkColor color;
 
+  // para almacenar la incormación de los botones
   GSTRUCT *buttonData;
 
   // contadores
   int i = 0;
   int j = 0;
 
-  // creación de elementos que se usan más de una vez
+  // creación de imagenes que se utilizan e n diversos puntos de la partida
 
+  // fichas de juego en diferentes resoluciones (40 * 40 y 20 * 20) blank sirve como un placeholder
   juego->graficos.m20[0] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/x.png", 20, 20, TRUE, NULL);
   juego->graficos.m20[1] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/o.png", 20, 20, TRUE, NULL);
   juego->graficos.m20[2] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/blank.png", 20, 20, TRUE, NULL);
@@ -32,6 +53,7 @@ void loadMainWindow(JUEGO *juego)
   juego->graficos.m40[1] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/o.png", 40, 40, TRUE, NULL);
   juego->graficos.m40[2] = gdk_pixbuf_new_from_file_at_scale("./MEDIA/blank.png", 40, 40, TRUE, NULL);
 
+  // otras imagenes necesarias
   juego->graficos.hercules = gdk_pixbuf_new_from_file_at_scale("./MEDIA/hercules.raw", 200, 200, TRUE, NULL);
   juego->graficos.logo = gdk_pixbuf_new_from_file_at_scale("./MEDIA/logo.png", 200, 200, TRUE, NULL);;
 
@@ -85,8 +107,8 @@ void loadMainWindow(JUEGO *juego)
     gtk_signal_connect(GTK_OBJECT(subItem), "activate", G_CALLBACK(cargarPartida), juego);
     gtk_menu_shell_append(GTK_MENU_SHELL(submenu), subItem);
 
-  // lo mimso 2 veces
 
+  // lo mimso para las otras 2 opciones del menu
   menuItem = gtk_image_menu_item_new();
     gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(menuItem), gtk_image_new_from_stock(GTK_STOCK_MEDIA_PLAY, GTK_ICON_SIZE_LARGE_TOOLBAR));
     gtk_menu_item_set_label(GTK_MENU_ITEM(menuItem), "Juego");
@@ -162,19 +184,19 @@ void loadMainWindow(JUEGO *juego)
   vBox = gtk_vbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hBox1), vBox, TRUE, TRUE, 0);
 
-  // caja de turno actual (como se modifica la metí a la estructura de juego)
+  // caja de turno actual
   juego->graficos.playingBox = gtk_vbox_new(FALSE, 10);
     gtk_box_pack_start(GTK_BOX(vBox), juego->graficos.playingBox, TRUE, TRUE, 0);
-    // gtk_box_pack_start(GTK_BOX(hBox1), juego->graficos.playingBox, TRUE, TRUE, 0);
 
   // etiqueta de la sección
   label = gtk_label_new("Jugando:");
     gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), label, FALSE, TRUE, 10);
 
-  // asocia la imagen a la estructura del juego
+  // crea una imagen para indicar al jugador actual
   juego->graficos.playingImg = gtk_image_new_from_pixbuf(juego->graficos.m40[2]);
     gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), juego->graficos.playingImg, FALSE, TRUE, 0);
 
+  // coloca las llamas del modo dificil abajo del todo de esta columna
   juego->graficos.flames[0] = gtk_image_new_from_file("./MEDIA/fire.gif");
     gtk_widget_set_size_request(juego->graficos.flames[0], 10, 200);
     gtk_box_pack_end(GTK_BOX(vBox), juego->graficos.flames[0], FALSE, TRUE, 0);
@@ -182,6 +204,7 @@ void loadMainWindow(JUEGO *juego)
   // tablero
   gdk_color_parse("#DCDAD5", &color);
 
+  // toda la seccion del tablero está en una caja de eventos para que no le afecte el cambio de fondo de la ventana principal
   eventbox = gtk_event_box_new();
     gtk_box_pack_start(GTK_BOX(hBox1), eventbox, TRUE, TRUE, 0);
     gtk_widget_modify_bg(eventbox, GTK_STATE_NORMAL, &color);
@@ -189,7 +212,6 @@ void loadMainWindow(JUEGO *juego)
 
   hBox = gtk_hbox_new(FALSE, 0);
     gtk_container_add(GTK_CONTAINER(eventbox), hBox);
-
 
   vBox1 = gtk_vbox_new(FALSE, 10);
     gtk_box_pack_start(GTK_BOX(hBox), vBox1, TRUE, TRUE, 10);
@@ -299,6 +321,7 @@ void loadMainWindow(JUEGO *juego)
   // muestra los widgets
   gtk_widget_show_all(juego->graficos.window);
 
+  // esconde widgets especificos que se mostrarán al iniciar una partida
   gtk_widget_hide(juego->graficos.flames[0]);
   gtk_widget_hide(juego->graficos.playerImg[0]);
 

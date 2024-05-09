@@ -1,20 +1,23 @@
 /**
- * Area funcional (R)
+ * @file header.h
+ * 
+ * @brief Contiene los prototipos de funciones y declaraciones de estructuras para todo el programa
+ * 
+ * @author Mariano Malouly Orozco
+ * @author Ricardo Sanchéz Zepeda
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @date 08/05/2024
 */
+
+// librerias usadas
 #include <gtk-2.0/gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// constante de nombre de ia
 #define AI_NAME "Hercules.raw"
-
-/**
- * La ficha de cada jugador se infiere de su índice.
- */
-typedef struct def_jugador {
-  char nombre[256];
-  char esCPU;
-} JUGADOR;
 
 /**
  * Estado o "judada"
@@ -28,13 +31,15 @@ typedef struct def_estado
   gboolean playable;
 } ESTADO;
 
+// Lista dinámica para el historial de movimientos
 typedef struct def_lista {
   ESTADO valor;
   struct def_lista *sig;
   struct def_lista *ant;
 } LISTA;
 
-typedef struct def_gamewidgets // (L)
+// estructura con todos los widgets que se utilizan a lo largo del programa
+typedef struct def_gamewidgets
 {
   GtkWidget *window;
   GtkWidget *playingImg;
@@ -49,6 +54,15 @@ typedef struct def_gamewidgets // (L)
   GdkPixbuf *logo;
 } GameWidgets;
 
+/**
+ * La ficha de cada jugador se infiere de su índice.
+ */
+typedef struct def_jugador {
+  char nombre[256];
+  char esCPU;
+} JUGADOR;
+
+// información de la partida
 typedef struct def_juego {
   JUGADOR jugadores[2];
   gboolean hardMode;
@@ -76,10 +90,12 @@ typedef struct def_juego {
  */
 typedef struct def_gstruct {
   JUEGO *juego;
-  GtkWidget *image; // <-- L
+  GtkWidget *image;
   int id;
 } GSTRUCT;
 
+
+// el resto de estructuras son para la computadora
 /**
  * ai.c (R)
  */
@@ -116,61 +132,52 @@ typedef struct def_ngdata
   GtkWidget *eLabel;
 } NGDATA;
 
-char estadoTablero(char tab[9]);
-
-void aiTurn(JUEGO *juego, int playerIndex);
-
+// funciones de ai.c
 void printBoard(BOARDSTRUCT board);
 char *getBoardItem(BOARDSTRUCT *board, int index);
 void makeBoardArray(BOARDSTRUCT *board, char array[]);
 char getPiece(int index);
 SCORESTRUCT getMoveScore(BOARDSTRUCT board, int square, int piece, int ogpiece, int depth);
+void aiTurn(JUEGO *juego, int playerIndex);
 
-void loadMainWindow(JUEGO *juego);
+// funciones de estadoTablero.c
+char estadoTablero(char tab[9]);
 
-void nuevaPartida(GtkWidget *widget, gpointer data);
-void terminarPartida(GtkWidget *widget, gpointer data);
-
-void guardarPartida(GtkWidget *widget, gpointer data);
-void cargarPartida(GtkWidget *widget, gpointer data);
-
-gint saveGame(JUEGO *datos, GtkWidget *parent);
-gint loadGame(JUEGO *datos, GtkWidget *parent);
-
-void comoJugar(GtkWidget *widget, gpointer data);
-void creditos(GtkWidget *widget, gpointer data);
-
-void endPopup(JUEGO *juego, char endState);
-
-void displayHardMode(JUEGO *juego);
-
+// funciones de events.c
 void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data);
 void button_hover(GtkWidget *eventbox, GdkEventButton *event, gpointer data);
 void button_leave(GtkWidget *eventbox, GdkEventButton *event, gpointer data);
-
 void radio_changed(GtkWidget *widget, gpointer data);
+void lastTurn(GtkWidget *widget, gpointer data);
+void nextTurn(GtkWidget *widget, gpointer data);
+void assistant_close(GtkWidget *widget, gpointer data);
+void assistant_destroy(GtkWidget *widget, gpointer data);
+void cargarPartida(GtkWidget *widget, gpointer data);
+void guardarPartida(GtkWidget *widget, gpointer data);
+void StopTheApp(GtkWidget *window, gpointer data);
 
+// funciones de grafic.c
+void loadMainWindow(JUEGO *juego);
+
+// funciones de main.c
 void initJuego(JUEGO *juego);
 void resetGame(JUEGO *juego);
 void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], char jug2[]);
-
-void StopTheApp(GtkWidget *window, gpointer data);
-
-/**
- * historial.c (M)
- */
-
-void lastTurn(GtkWidget *widget, gpointer data);
-void nextTurn(GtkWidget *widget, gpointer data);
-
+void displayHardMode(JUEGO *juego);
 void coppyBoardState(JUEGO *juego);
 void coppyPlayersState(JUEGO *juego);
-
 void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent);
 int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent);
 
-void assistant_close(GtkWidget *widget, gpointer data);
-void assistant_destroy(GtkWidget *widget, gpointer data);
+// funciones de popups.c
+void nuevaPartida(GtkWidget *widget, gpointer data);
+void terminarPartida(GtkWidget *widget, gpointer data);
+gint saveGame(JUEGO *datos, GtkWidget *parent);
+gint loadGame(JUEGO *datos, GtkWidget *parent);
+void comoJugar(GtkWidget *widget, gpointer data);
+void creditos(GtkWidget *widget, gpointer data);
+void endPopup(JUEGO *juego, char endState);
 
+// funciones de sound.c
 void startMusic(); 
 void stopMusic(); 

@@ -1,6 +1,16 @@
-#include "header.h"
+/**
+ * @file main.c
+ * 
+ * @brief contiene la función principal junto con otras funciones de respaldo
+ * 
+ * @author Mariano Malouly Orozco
+ * @author Ricardo Sanchéz Zepeda
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @date 08/05/2024
+*/
 
-// no he cambiado la imagen del titulo porque no me gusta como se ve :P
+#include "header.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,8 +22,10 @@ int main(int argc, char *argv[])
   // inicia gtk
   gtk_init(&argc, &argv);
 
+  // inicializa la estructura de juego
   initJuego(&juego);
 
+  // carga la ventana principal
   loadMainWindow(&juego);
 
   gtk_main();
@@ -21,61 +33,22 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void aiTurn(JUEGO *juego, int playerIndex) {
-  BOARDSTRUCT board;
-  int i;
-  int chosenMove;
-  int greatestScore;
-  char chosenMoveExists; // boolean in spirit
-  SCORESTRUCT tmpScore;
-
-  // @richie -> si la ia empieza la partida, te deja tirar por ella xd
-  // comedia
-
-  chosenMove = 0; // just in case
-  chosenMoveExists = 0;
-
-  for (i = 0; i < 9; i++) {
-    *getBoardItem(&board, i) = juego->actual->valor.tablero[i];
-  }
-
-  for (i = 0; i < 9; i++) {
-    if (*getBoardItem(&board, i) == ' ') {
-      tmpScore = getMoveScore(board, i, playerIndex, playerIndex, 0);
-
-      if (!chosenMoveExists) {
-        greatestScore = tmpScore.score;
-        chosenMove = i;
-        chosenMoveExists = 1;
-      } else {
-        if (tmpScore.score > greatestScore) {
-          greatestScore = tmpScore.score;
-          chosenMove = i;
-        } else if (tmpScore.score == greatestScore) {
-          if (rand() % 2) { 
-            // si hay varios espacios con el valor maximo, aleatoriamente elije uno
-            chosenMove = i;
-          }
-        }
-      }
-    }
-  }
-
-
-  // TODO: remove this maybe? its for debugging.
-  (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
-  printBoard(board);
-  g_print("chosenMove: %d\n", chosenMove);
-
-  button_pressed(juego->botones[ chosenMove ], NULL, juego->gstructArr[ chosenMove ]);
-
-  // this is for debugging and does not affect the real game in any way:
-}
-
+/**
+ * Inicializa la estructura de juego
+ * 
+ * @author Mariano Malouly Orozco
+ * @author Ricardo Sanchéz Zepeda
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego la estructura a inicializar
+ * 
+ * @return void
+*/
 void initJuego(JUEGO *juego) 
 {
   int i = 0;
 
+  // inicia el historial con un tablero vacío
   juego->actual = (LISTA *) malloc(sizeof(LISTA));
   juego->actual->valor.estadoPartida = 0;
   juego->actual->valor.turno = 0;
@@ -84,6 +57,8 @@ void initJuego(JUEGO *juego)
   juego->actual->ant = NULL;
 
   juego->doubleTurn = FALSE;
+
+  // aloca memoria para la información de los botones
   for(i = 0; i < 9; i++) 
   {
     juego->gstructArr[i] = (void *) malloc(sizeof(GSTRUCT));
@@ -91,6 +66,7 @@ void initJuego(JUEGO *juego)
     juego->actual->valor.tablero[i] = ' ';
   }
 
+  // establece los valores principales de losjugadores
   for(i = 0; i < 2; i++) 
   {
     juego->jugadores[i].esCPU = 0;
@@ -100,62 +76,15 @@ void initJuego(JUEGO *juego)
   return;
 }
 
-void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], char jug2[])
-{
-  char *jugadores[2];
-
-  int ran = rand() % 2;
-
-  resetGame(juego);
-
-  juego->actual->valor.estadoPartida = 1;
-
-
-  jugadores[0] = jug1;
-
-  if(vsAI)
-  {
-    juego->jugadores[(ran + 1) % 2].esCPU = 1;
-    jugadores[1] = AI_NAME;
-
-    if(hardMode)
-    {
-      juego->hardMode = TRUE;
-
-      displayHardMode(juego);
-
-      startMusic();
-    }
-  }
-  else
-  {
-    jugadores[1] = jug2;
-  }
-
-  gtk_widget_show(juego->graficos.playerImg[0]);
-  gtk_widget_show(juego->graficos.playerImg[1]);
-  
-  gtk_widget_destroy(juego->graficos.playingImg);
-  
-  juego->graficos.playingImg = gtk_image_new_from_pixbuf(juego->graficos.m40[0]);
-    gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), juego->graficos.playingImg, FALSE, TRUE, 0);
-    gtk_widget_show(juego->graficos.playingImg);
-
-  gtk_label_set_text(GTK_LABEL(juego->graficos.playerName[ran]), jugadores[0]);
-  strcpy(juego->jugadores[ran].nombre, jugadores[0]);
-
-  gtk_label_set_text(GTK_LABEL(juego->graficos.playerName[(ran + 1) % 2]), jugadores[1]);
-  strcpy(juego->jugadores[(ran + 1) % 2].nombre, jugadores[1]);
-
-  if(juego->jugadores[0].esCPU)
-  {
-    aiTurn(juego, juego->actual->valor.turno);
-    gtk_widget_set_sensitive(juego->graficos.moveButtons[0], FALSE);
-  }
-
-  return;
-}
-
+/**
+ * Borra toda la información de la partida, dejando la pantalla de la misma forma que al iniciar el programa
+ * 
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego la información de la partida
+ * 
+ * @return void
+*/
 void resetGame(JUEGO *juego)
 {
   LISTA *temp, *temp2;
@@ -171,6 +100,7 @@ void resetGame(JUEGO *juego)
 
   stopMusic();
 
+  // reestablece todos los elementos gráficos de la ventana
   gtk_widget_modify_bg(juego->graficos.window, GTK_STATE_NORMAL, &color);
   gtk_widget_modify_bg(juego->graficos.window, GTK_STATE_INSENSITIVE, &color);
 
@@ -206,6 +136,7 @@ void resetGame(JUEGO *juego)
     gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), juego->graficos.playingImg, FALSE, TRUE, 0);
     gtk_widget_show(juego->graficos.playingImg);
 
+  // libera el historial de movimientos
   if(juego->actual != NULL)
   {
     while(juego->actual->ant != NULL)
@@ -230,17 +161,105 @@ void resetGame(JUEGO *juego)
   return;
 }
 
+/**
+ * Inicia una nueva partida con la información de los argumentos
+ * 
+ * @author Ricardo Sánchez Zepeda
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego la informacion de la partida a modificar
+ * @param vsAI si se va a enfrentar a una computadora
+ * @param hardMode si la dificultad va a ser dificil
+ * @param jug1[] el nombre del primer jugador
+ * @param jug2[] el nombre del segundo jugador
+ * 
+ * @return void
+*/
+void setNewGame(JUEGO *juego, gboolean vsAI, gboolean hardMode, char jug1[], char jug2[])
+{
+  char *jugadores[2];
+
+  int ran = rand() % 2;
+
+  // reinicia el tablero
+  resetGame(juego);
+
+  juego->actual->valor.estadoPartida = 1;
+
+  jugadores[0] = jug1;
+
+  // si se enfrenta a una computadora
+  if(vsAI)
+  {
+    // establece a un jugador como la computadora
+    juego->jugadores[(ran + 1) % 2].esCPU = 1;
+    jugadores[1] = AI_NAME;
+
+    // si se elige modo dificil, activa los valores necesarios
+    if(hardMode)
+    {
+      juego->hardMode = TRUE;
+
+      displayHardMode(juego);
+
+      startMusic();
+    }
+  }
+  // si no, establece a ambos jugadores como usuarios
+  else
+  {
+    jugadores[1] = jug2;
+  }
+
+  // muestra los widgets necesarios
+  gtk_widget_show(juego->graficos.playerImg[0]);
+  gtk_widget_show(juego->graficos.playerImg[1]);
+  
+  gtk_widget_destroy(juego->graficos.playingImg);
+  
+  juego->graficos.playingImg = gtk_image_new_from_pixbuf(juego->graficos.m40[0]);
+    gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), juego->graficos.playingImg, FALSE, TRUE, 0);
+    gtk_widget_show(juego->graficos.playingImg);
+
+  gtk_label_set_text(GTK_LABEL(juego->graficos.playerName[ran]), jugadores[0]);
+  strcpy(juego->jugadores[ran].nombre, jugadores[0]);
+
+  gtk_label_set_text(GTK_LABEL(juego->graficos.playerName[(ran + 1) % 2]), jugadores[1]);
+  strcpy(juego->jugadores[(ran + 1) % 2].nombre, jugadores[1]);
+
+  // si empieza la computadora
+  if(juego->jugadores[0].esCPU)
+  {
+    aiTurn(juego, juego->actual->valor.turno);
+    gtk_widget_set_sensitive(juego->graficos.moveButtons[0], FALSE);
+  }
+
+  return;
+}
+
+/**
+ * Hace visibles los elementos del modo dificil
+ * 
+ * @author Ricardo Sánchez Zepeda
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego la información del juego
+ * 
+ * @return void
+*/
 void displayHardMode(JUEGO *juego)
 {
   GdkColor color;
 
   int i = 0;
   
+  // cambia el color del fondo
   gdk_color_parse("#790000", &color);
 
   gtk_widget_modify_bg(juego->graficos.window, GTK_STATE_NORMAL, &color);
   gtk_widget_modify_bg(juego->graficos.window, GTK_STATE_INSENSITIVE, &color);
 
+  // muestra las llamas
   for(i = 0; i < 2; i++)
   {
     //gtk_widget_show(juego->graficos.flames[i]);
@@ -249,6 +268,15 @@ void displayHardMode(JUEGO *juego)
   return;
 }
 
+/**
+ * Copia en el tablero el estado del arreglo de caracteres del tablero interno
+ * 
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego la información de la aprtida
+ * 
+ * @return void
+*/
 void coppyBoardState(JUEGO *juego)
 {
   GdkColor selected, unselected;
@@ -257,19 +285,25 @@ void coppyBoardState(JUEGO *juego)
 
   int i = 0;
 
+  // color de botones activos o inactivos
   gdk_color_parse("#DCDAD5", &unselected);
   gdk_color_parse("#A3A3A3", &selected);
 
+  // para los 9 botones
   for(i = 0; i < 9; i++)
   {
     button = (GSTRUCT *)juego->gstructArr[i];
 
+    // elimina la imagen del botón
     gtk_widget_destroy(button->image);
 
+    // segun el tablero interno
     switch(juego->actual->valor.tablero[i])
     {
+      // si el boton tiene una X
       case 'X':
       {
+        // establece su imagen y su fondo  respectivamente
         button->image = gtk_image_new_from_pixbuf(juego->graficos.m40[0]);
     
         gtk_widget_modify_bg(juego->botones[i], GTK_STATE_NORMAL, &selected);
@@ -294,6 +328,7 @@ void coppyBoardState(JUEGO *juego)
       }
     }
 
+    // muestra el icono del boton
     gtk_container_add(GTK_CONTAINER(juego->botones[i]), button->image);
     gtk_widget_show(button->image);
   }
@@ -301,16 +336,27 @@ void coppyBoardState(JUEGO *juego)
   return;
 }
 
+/**
+ * Establece a los jugadores y jugador actual segun la información de la partida
+ * 
+ * @author Luis Julián Zamora Treviño
+ * 
+ * @param *juego la info de la partida
+ * 
+ * @return void
+*/
 void coppyPlayersState(JUEGO *juego)
 {
   int i = 0;
 
+  // muestra la simagenes y los nombres de los jugadores
   for(i = 0; i < 2; i++)
   {
     gtk_widget_show(juego->graficos.playerImg[i]);
     gtk_label_set_text(GTK_LABEL(juego->graficos.playerName[i]), juego->jugadores[i].nombre);
   }
 
+  // cambia la imagend el jugador actual
   gtk_widget_destroy(juego->graficos.playingImg);
 
   if(juego->actual->valor.estadoPartida > 0)
@@ -325,6 +371,7 @@ void coppyPlayersState(JUEGO *juego)
   gtk_box_pack_start(GTK_BOX(juego->graficos.playingBox), juego->graficos.playingImg, FALSE, TRUE, 0);
   gtk_widget_show(juego->graficos.playingImg);
 
+  // si hay jugada anterior, habilita el boton de anterior
   if(juego->actual->ant != NULL)
   {
     gtk_widget_set_sensitive(juego->graficos.moveButtons[0], TRUE);
@@ -333,6 +380,18 @@ void coppyPlayersState(JUEGO *juego)
   return;
 }
 
+/**
+ * Guarda la información de una partida en un archivo binario
+ * 
+ * @author Mariano Malouly Orozco
+ * @author Ricardo Sanchéz Zepeda
+ * 
+ * @param fileName[] nombre del archivo
+ * @param *datos los datos de la aprtida
+ * @param *parent el widget que llamó a la función
+ * 
+ * @return void
+*/
 void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent)
 {
   GtkWidget *dialog, *label, *box;
@@ -345,6 +404,7 @@ void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent)
 
   fp = fopen(fileName, "wb");
 
+  // guarda la información relevante de la aprtida
   fwrite(&datos->hardMode, sizeof(gboolean), 1, fp);
 
   for(i = 0; i < 2; i++)
@@ -367,6 +427,7 @@ void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent)
 
   fclose(fp);
 
+  // muestra un mensaje al guardar con exito la partida
   dialog = gtk_dialog_new_with_buttons("Archivo guardado", GTK_WINDOW(parent), GTK_DIALOG_MODAL, "Cerrar", GTK_RESPONSE_CLOSE, NULL);
   
   box = gtk_vbox_new(TRUE, 10);
@@ -383,6 +444,21 @@ void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent)
   return;
 }
 
+/**
+ * Carga una partida de un archivo binario, regresa:
+ * -2 si no pudo acceder al archivo
+ * -1 si no pudo leer un dato de la partida
+ * 0 si pudo cargar correctamente la partida
+ * 
+ * @author Mariano Malouly Orozco
+ * @author Ricardo Sanchéz Zepeda
+ * 
+ * @param fileName[] nombre del archivo
+ * @param *datos los datos de la aprtida
+ * @param *parent el widget que llamó a la función
+ * 
+ * @return int
+*/
 int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
 {
   GtkWidget *dialog, *label, *box;
@@ -398,6 +474,7 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
   temp = NULL;
   datos->actual = NULL;
 
+  // prepara un mensaje
   dialog = gtk_dialog_new_with_buttons("Cargar partida", GTK_WINDOW(parent), GTK_DIALOG_MODAL, "Cerrar", GTK_RESPONSE_CLOSE, NULL);
   
   box = gtk_vbox_new(TRUE, 10);
@@ -407,8 +484,10 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
   fp = fopen(fileName, "rb");
 
 
+  // si puede abrir el archivo
   if(fp != NULL)
   {
+    // intentará leer cada dato uno por uno, al no poder leer algo, marcará un error
     if(!fread(&datos->hardMode, sizeof(gboolean), 1, fp))
     {
       label = gtk_label_new("Partida corrupta.");
@@ -424,6 +503,7 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
       }
     }
 
+    // aloca memoria para el historial de movimientos
     while(fread(&turno, sizeof(ESTADO), 1, fp) && !rv)
     {
       temp = (LISTA *) malloc(sizeof(LISTA));
@@ -463,6 +543,7 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
     rv = -2;
   }
 
+  // muestra el mensaje que haya resultado
   gtk_box_pack_start(GTK_BOX(box), label, TRUE, TRUE, 20);
   gtk_widget_show_all(dialog);
   gtk_dialog_run(GTK_DIALOG(dialog));
@@ -470,13 +551,3 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
 
   return rv;
 }
-
-
-/**
- * Que la ia tire 2 veces en modo dificil
- * Musica del modo dificil
- * Manejar historial para partidas contra ia
- * 
- * Pantalla de créditos
- * Pantalla de como jugar
-*/

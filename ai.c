@@ -1,3 +1,13 @@
+/**
+ * @file ai.c
+ * 
+ * @brief contiene todas las funciones relacionadas a las jugadas de la computadora
+ * 
+ * @author Ricardo Sánchez Zepeda
+ * 
+ * @date 08/05/2024
+*/
+
 #include "header.h"
 
 /**
@@ -142,4 +152,52 @@ SCORESTRUCT getMoveScore(BOARDSTRUCT board, int square, int piece, int ogpiece, 
 
   res.exists = 1;
   return res;
+}
+
+void aiTurn(JUEGO *juego, int playerIndex) {
+  BOARDSTRUCT board;
+  int i;
+  int chosenMove;
+  int greatestScore;
+  char chosenMoveExists; // boolean in spirit
+  SCORESTRUCT tmpScore;
+
+  chosenMove = 0; // just in case
+  chosenMoveExists = 0;
+
+  for (i = 0; i < 9; i++) {
+    *getBoardItem(&board, i) = juego->actual->valor.tablero[i];
+  }
+
+  for (i = 0; i < 9; i++) {
+    if (*getBoardItem(&board, i) == ' ') {
+      tmpScore = getMoveScore(board, i, playerIndex, playerIndex, 0);
+
+      if (!chosenMoveExists) {
+        greatestScore = tmpScore.score;
+        chosenMove = i;
+        chosenMoveExists = 1;
+      } else {
+        if (tmpScore.score > greatestScore) {
+          greatestScore = tmpScore.score;
+          chosenMove = i;
+        } else if (tmpScore.score == greatestScore) {
+          if (rand() % 2) { 
+            // si hay varios espacios con el valor maximo, aleatoriamente elije uno
+            chosenMove = i;
+          }
+        }
+      }
+    }
+  }
+
+
+  // TODO: remove this maybe? its for debugging.
+  // (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
+  // printBoard(board);
+  // g_print("chosenMove: %d\n", chosenMove);
+
+  // button_pressed(juego->botones[ chosenMove ], NULL, juego->gstructArr[ chosenMove ]);
+
+  // this is for debugging and does not affect the real game in any way:
 }
