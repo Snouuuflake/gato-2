@@ -45,6 +45,7 @@ typedef struct def_gamewidgets // (L)
   GdkPixbuf *m20[3];
   GdkPixbuf *m40[3];
   GdkPixbuf *hercules;
+  GdkPixbuf *logo;
 } GameWidgets;
 
 typedef struct def_juego {
@@ -54,7 +55,6 @@ typedef struct def_juego {
 
   GtkWidget *botones[9];
   void *gstructArr[9];
-  gboolean doubleTurn;
 
   GameWidgets graficos;
 } JUEGO;
@@ -166,3 +166,6 @@ void coppyPlayersState(JUEGO *juego);
 
 void saveFile(char fileName[], JUEGO *datos, GtkWidget *parent);
 int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent);
+
+void assistant_close(GtkWidget *widget, gpointer data);
+void assistant_destroy(GtkWidget *widget, gpointer data);

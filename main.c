@@ -35,10 +35,12 @@ void aiTurn(JUEGO *juego, int playerIndex) {
   chosenMove = 0; // just in case
   chosenMoveExists = 0;
 
+  g_print("1\n");
   for (i = 0; i < 9; i++) {
     *getBoardItem(&board, i) = juego->actual->valor.tablero[i];
   }
 
+  g_print("2\n");
   for (i = 0; i < 9; i++) {
     if (*getBoardItem(&board, i) == ' ') {
       tmpScore = getMoveScore(board, i, playerIndex, playerIndex, 0);
@@ -61,8 +63,8 @@ void aiTurn(JUEGO *juego, int playerIndex) {
     }
   }
 
+  g_print("3\n");
 
-  // TODO: remove this maybe? its for debugging.
   (*getBoardItem(&board, chosenMove)) = getPiece(playerIndex);
   printBoard(board);
   g_print("chosenMove: %d\n", chosenMove);
@@ -70,6 +72,7 @@ void aiTurn(JUEGO *juego, int playerIndex) {
   button_pressed(juego->botones[ chosenMove ], NULL, juego->gstructArr[ chosenMove ]);
 
   // this is for debugging and does not affect the real game in any way:
+  g_print("4\n");
 }
 
 void initJuego(JUEGO *juego) 
@@ -82,7 +85,6 @@ void initJuego(JUEGO *juego)
   juego->actual->sig = NULL;
   juego->actual->ant = NULL;
 
-  juego->doubleTurn = FALSE;
   for(i = 0; i < 9; i++) 
   {
     juego->gstructArr[i] = (void *) malloc(sizeof(GSTRUCT));
@@ -238,7 +240,7 @@ void displayHardMode(JUEGO *juego)
 
   for(i = 0; i < 2; i++)
   {
-    //gtk_widget_show(juego->graficos.flames[i]);
+    gtk_widget_show(juego->graficos.flames[i]);
   }
 
   return;
@@ -466,12 +468,8 @@ int loadFile(char fileName[], JUEGO *datos, GtkWidget *parent)
   return rv;
 }
 
-
 /**
  * Que la ia tire 2 veces en modo dificil
  * Musica del modo dificil
  * Manejar historial para partidas contra ia
- * 
- * Pantalla de créditos
- * Pantalla de como jugar
 */

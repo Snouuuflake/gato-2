@@ -362,18 +362,196 @@ gint loadGame(JUEGO *datos, GtkWidget *parent)
 
 void comoJugar(GtkWidget *widget, gpointer data)
 {
-  // JUEGO *datos = (JUEGO *)data;
+  JUEGO *datos = (JUEGO *)data;
 
-  g_print("Instructivo\n");
+  GtkWidget *assistant, *label;
+
+  gtk_widget_set_sensitive(datos->graficos.window, FALSE);
+
+  assistant = gtk_assistant_new();
+    gtk_widget_set_size_request(assistant, 500, 300);
+    gtk_window_set_title(GTK_WINDOW (assistant), "Como jugar?");
+    g_signal_connect(G_OBJECT(assistant), "destroy", G_CALLBACK (assistant_destroy), datos);
+    g_signal_connect(G_OBJECT(assistant), "cancel", G_CALLBACK(assistant_close), NULL);
+    g_signal_connect(G_OBJECT(assistant), "close", G_CALLBACK(assistant_close), NULL);
+
+  label = gtk_label_new(
+    "Al iniciar una partida, se desplegará una ventana de configuración\n"\
+    "que permitirá seleccionar uno de dos posibles adversarios:\n"\
+    "otro jugador o la computadora.\n\n"\
+    "En caso de enfrentarte a otro jugador, ambos deberán colocar sus \n"\
+    "nombres, que deben ser diferentes uno del otro.\n\n"\
+    "Si se elige jugar contra la computadora, solo será necesario colocar\n"\
+    "un nombre y adicionalmente podrá seleccionarse el modo dificíl.");
+  
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Modos de juego");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+
+  label = gtk_label_new(
+    "Te enfrentarás a otro usuario, el primer turno se elige al azar.\n\n"\
+    "Quien logre hacer una línea recta de tres fichas será el ganador.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Modos de juego:\nContra Jugador");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Te enfrentarás a la computadora.\n\n"\
+    "Esta será capaz de bloquear tus jugadas y de desarrollar las propias.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Modos de juego:\nContra Computadora");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "La computadora tendrá la oportunidad de tirar dos veces por turno.\n\n"\
+    "Adicionalmente, el destino del universo estará en tus manos.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Modos de juego:\nContra Computadora (dificíl)");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "El tablero tiene de su lado izquierdo la imagen del jugador que está\n"\
+    "jugando actualmente y de su lado derecho la ficha y nombre de ambos\n"\
+    "jugadores.\n\n"\
+    "Si se selecciona una casilla y no hay una partida en curso, se mostrará\n"\
+    "la ventana de configuración de juego.\n\n"\
+    "Si la partida ha acabado, no se podrán colocar más fichas.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Tablero");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Debajo del tablero se encuentran dos botones, uno para regresar y otro\n"\
+    "para avanzar, estos se activan o desactivan si hay movimientos en el\n"\
+    "historial en ese sentido.\n\n"\
+    "Al seleccionarlos, la partida se recorrera al punto del historial deseado.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Historial");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Atajo: ctl + S\n\n"\
+    "Despliega el navegador de archivos para guardar la partida actual.\n\n"\
+    "Si no hay una partida en curso, una advertencia se desplegará en lugar\n"\
+    "del navegador.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Menu: Archivo\nGuardar");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Atajo: ctl + O\n\n"\
+    "Despliega el navegador de archivos para cargar una nueva partida.\n\n"\
+    "En caso de que haya una partida en curso, se preguntará si se desea\n"\
+    "guardar la partida actual.\n\n"\
+    "Tras guardar la partida en caso de desearlo y cargar otra aprtida, la\n"\
+    "partida cargada continuará desde su último punto en el historial.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Menu: Archivo\nAbrir");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Atajo: ctl + N\n\n"\
+    "Despliega la ventana de selección de modo de juego.\n\n"\
+    "Una vez configurada la partida, esta comenzará con las configuraciones\n"\
+    "seleccionadas.\n\n"\
+    "De haber una partida en curso, se preguntará si se desea guardar.\n");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Menu: Juego\nNuevo");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Atajo: ctl + F\n\n"\
+    "Finaliza la partida actual preguntando si se desea guardar.\n\n"\
+    "Si no hay una partida en curso, se desplegará una advertencia.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Menu: Juego\nTerminar");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Atajo: ctl + H\n\n"\
+    "Despliega esta ventana de ayuda.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Menu: Mas\nComo jugar");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label, GTK_ASSISTANT_PAGE_CONTENT);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+  
+  
+  label = gtk_label_new(
+    "Atajo: ctl + A\n\n"\
+    "Despliega esta ventana de créditod.");
+
+  gtk_assistant_append_page(GTK_ASSISTANT(assistant), label);
+    gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), label, "Menu: Mas\nAcerca de");
+    gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), label,  GTK_ASSISTANT_PAGE_CONFIRM);
+    gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), label, TRUE);
+
+  gtk_widget_show_all (assistant);
 
   return;
 }
 
 void creditos(GtkWidget *widget, gpointer data)
 {
-  // JUEGO *datos = (JUEGO *)data;
+  JUEGO *datos = (JUEGO *)data;
+  
+  GtkWidget *dialog;
 
-  g_print("Creditos\n");
+  const gchar *authors[] = {
+    "Sánchez Zepeda Ricardo (ict23rsz)",
+    NULL
+  };
+
+  const gchar *documenters[] = {
+    "Malouly Orozco Mariano (msc23mmo)",
+    NULL
+  };
+
+  const gchar *artists[] = {
+    "Zamora Treviño Luis Julián (ict23jzt)",
+    NULL
+  };
+
+  dialog = gtk_about_dialog_new();
+    gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(dialog), "Tic Tac Toe");
+    gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog), "2.0");
+    gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog), "Programación Aplicada y Laboratorio\nMaestro Jorge Rodríguez García");
+    gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(dialog), authors);
+    gtk_about_dialog_set_documenters(GTK_ABOUT_DIALOG(dialog), documenters);
+    gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(dialog), artists);
+    gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG (dialog), datos->graficos.logo);
+
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
 
   return;
 }

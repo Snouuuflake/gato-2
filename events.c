@@ -34,71 +34,46 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
     buttondata->juego->actual->sig = nuevo; // <-- el siguiente del actual es el nuevo elemento
     
     nuevo->valor = buttondata->juego->actual->valor;
-    if (buttondata->juego->doubleTurn == TRUE) {
-      nuevo->valor.turno = buttondata->juego->actual->valor.turno;
-    } else {
-      nuevo->valor.turno = (buttondata->juego->actual->valor.turno + 1) % 2;
-    }
-
+    nuevo->valor.turno = (buttondata->juego->actual->valor.turno + 1) % 2;
 
     // cambia el color (en caso de tiro de ia)
     gdk_color_parse("#A3A3A3", &color);
     gtk_widget_modify_bg(eventbox, GTK_STATE_NORMAL, &color);
 
     // cambia el valor en el arreglo
-    g_print("actual->valor.turno: %d\n", buttondata->juego->actual->valor.turno);
     nuevo->valor.tablero[buttondata->id] = players[buttondata->juego->actual->valor.turno];
 
     gtk_widget_destroy(buttondata->image);
 
-    g_print("     1\n");
     buttondata->image = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[buttondata->juego->actual->valor.turno]);
       gtk_container_add(GTK_CONTAINER(eventbox), buttondata->image);
       gtk_widget_show(buttondata->image);
 
-    g_print("     2\n");
     gtk_widget_destroy(buttondata->juego->graficos.playingImg);
 
     buttondata->juego->graficos.playingImg = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[nuevo->valor.turno]);
-    gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
-    gtk_widget_show(buttondata->juego->graficos.playingImg);
-
-    g_print("     3\n");
+      gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
+      gtk_widget_show(buttondata->juego->graficos.playingImg);
+    
     buttondata->juego->actual = nuevo;
 
     gameEnded = estadoTablero(nuevo->valor.tablero);
 
-    g_print("     4\n");
     if (gameEnded) {
-      if (buttondata->juego->doubleTurn == TRUE) {
-        buttondata->juego->actual->valor.turno =  (buttondata->juego->actual->valor.turno + 1) % 2;
-      }
       gtk_widget_destroy(buttondata->juego->graficos.playingImg);
 
-      g_print("     5\n");
       buttondata->juego->graficos.playingImg = gtk_image_new_from_pixbuf(buttondata->juego->graficos.m40[2]);
-      gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
-      gtk_widget_show(buttondata->juego->graficos.playingImg);
+        gtk_box_pack_start(GTK_BOX(buttondata->juego->graficos.playingBox), buttondata->juego->graficos.playingImg, FALSE, TRUE, 0);
+        gtk_widget_show(buttondata->juego->graficos.playingImg);
 
-      g_print("     6\n");
       endPopup(buttondata->juego, gameEnded);
 
       buttondata->juego->actual->valor.estadoPartida = -1;
     }
 
     // TODO: move the vairables up
-    if (buttondata->juego->jugadores[nuevo->valor.turno].esCPU && !gameEnded && !buttondata->juego->doubleTurn) {
-      if (buttondata->juego->hardMode) {
-        buttondata->juego->doubleTurn = TRUE;
-        aiTurn(buttondata->juego, buttondata->juego->actual->valor.turno);
-
-        if (buttondata->juego->actual->valor.estadoPartida != -1) {
-          aiTurn(buttondata->juego, buttondata->juego->actual->valor.turno);
-        }
-      } else {
-        aiTurn(buttondata->juego, buttondata->juego->actual->valor.turno);
-      }
-
+    if (buttondata->juego->jugadores[nuevo->valor.turno].esCPU && !gameEnded) {
+      aiTurn(buttondata->juego, buttondata->juego->actual->valor.turno);
     }
   }
   else if(!buttondata->juego->actual->valor.estadoPartida)
@@ -106,7 +81,6 @@ void button_pressed(GtkWidget *eventbox, GdkEventButton *event, gpointer data)
     nuevaPartida(NULL, buttondata->juego);
   }
 
-  buttondata->juego->doubleTurn = FALSE;
   return;
 }
 
@@ -259,5 +233,20 @@ void nextTurn(GtkWidget *widget, gpointer data)
     gtk_widget_show(datos->graficos.playingImg);
   }
 
+  return;
+}
+
+void assistant_close(GtkWidget *widget, gpointer data)
+{
+  gtk_widget_destroy(widget);
+
+  return;
+}
+
+void assistant_destroy(GtkWidget *widget, gpointer data)
+{
+  JUEGO *datos = (JUEGO *) data;
+
+  gtk_widget_set_sensitive(datos->graficos.window, TRUE);
   return;
 }
